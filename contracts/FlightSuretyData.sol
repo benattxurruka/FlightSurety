@@ -12,6 +12,21 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
+    // airlines info
+    struct Airline {
+        address airlineWallet;
+        bool isRegistered;
+        string name;
+        uint256 funds;
+        address[] votes;
+    }
+    mapping(address => Airline) private airlines;
+
+    //multiparty variables
+    uint8 private constant MULTIPARTY_MIN_AIRLINES = 4;
+    uint256 private airlinesCount;
+
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -23,10 +38,11 @@ contract FlightSuretyData {
     */
     constructor
                                 (
-                                ) 
-                                public 
+                                )
+                                public
     {
         contractOwner = msg.sender;
+        airlinesCount = 0;
     }
 
     /********************************************************************************************/
@@ -38,10 +54,10 @@ contract FlightSuretyData {
 
     /**
     * @dev Modifier that requires the "operational" boolean variable to be "true"
-    *      This is used on all state changing functions to pause the contract in 
+    *      This is used on all state changing functions to pause the contract in
     *      the event there is an issue that needs to be fixed
     */
-    modifier requireIsOperational() 
+    modifier requireIsOperational()
     {
         require(operational, "Contract is currently not operational");
         _;  // All modifiers require an "_" which indicates where the function body will be added
@@ -64,11 +80,11 @@ contract FlightSuretyData {
     * @dev Get operating status of contract
     *
     * @return A bool that is the current operating status
-    */      
-    function isOperational() 
-                            public 
-                            view 
-                            returns(bool) 
+    */
+    function isOperational()
+                            public
+                            view
+                            returns(bool)
     {
         return operational;
     }
@@ -78,13 +94,13 @@ contract FlightSuretyData {
     * @dev Sets contract operations on/off
     *
     * When operational mode is disabled, all write transactions except for this one will fail
-    */    
+    */
     function setOperatingStatus
                             (
                                 bool mode
-                            ) 
+                            )
                             external
-                            requireContractOwner 
+                            requireContractOwner
     {
         operational = mode;
     }
@@ -97,22 +113,57 @@ contract FlightSuretyData {
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
     *
-    */   
+    */
     function registerAirline
-                            (   
+                            (
+                                address airlineAddress,
+                                string name
                             )
                             external
-                            pure
+                            requireIsOperational
+                            returns(bool success, uint256 votes)
     {
+        require(!airlines[airlineAddress].isRegistered, "Airline is already registered.");
+        require(!checkIfContains(airlines[airlineAddress].votes), "You already voted to register this airline.");
+
+        if(airlinesCount < MULTIPARTY_MIN_AIRLINES){
+            airlines[airlineAddress] = Airline({
+                                                airlineWallet: airlineAddress,
+                                                isRegistered: true,
+                                                name: name,
+                                                funds: 0,
+                                                votes: new address[](0)
+                                        });
+            airlines[airlineAddress].votes.push(msg.sender);
+            airlinesCount.add(1);
+        } else {
+            airlines[airlineAddress].votes.push(msg.sender);
+            airlinesCount.add(1);
+            if (airlines[airlineAddress].votes.length >= airlinesCount.div(2)) {
+                airlines[airlineAddress].isRegistered = true;
+            }
+        }
+
+        return (true, airlines[airlineAddress].votes.length);
     }
 
+    function checkIfContains(address[] memory voters) internal returns(bool alreadyVoted){
+        alreadyVoted = false;
+        for (uint256 c = 0; c < voters.length; c++) {
+            if (voters[c] == msg.sender) {
+                alreadyVoted = true;
+                break;
+            }
+        }
+        return alreadyVoted;
+    }
 
    /**
     * @dev Buy insurance for a flight
     *
-    */   
+    */
     function buy
-                            (                             
+                            (
                             )
                             external
                             payable
@@ -130,7 +181,7 @@ contract FlightSuretyData {
                                 pure
     {
     }
-    
+
 
     /**
      *  @dev Transfers eligible payout funds to insuree
@@ -148,9 +199,9 @@ contract FlightSuretyData {
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
-    */   
+    */
     function fund
-                            (   
+                            (
                             )
                             public
                             payable
@@ -165,7 +216,7 @@ contract FlightSuretyData {
                         )
                         pure
                         internal
-                        returns(bytes32) 
+                        returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
@@ -174,9 +225,9 @@ contract FlightSuretyData {
     * @dev Fallback function for funding smart contract.
     *
     */
-    function() 
-                            external 
-                            payable 
+    function()
+                            external
+                            payable
     {
         fund();
     }
