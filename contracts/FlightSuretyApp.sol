@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.4.25;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
@@ -27,8 +27,11 @@ contract FlightSuretyApp {
 
     address private contractOwner;          // Account used to deploy contract
 
+    // flights data
     struct Flight {
         bool isRegistered;
+        string flightCode;
+        string destination;
         uint8 statusCode;
         uint256 updatedTimestamp;
         address airline;
@@ -74,10 +77,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContract
                                 )
                                 public
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -86,10 +91,10 @@ contract FlightSuretyApp {
 
     function isOperational()
                             public
-                            pure
+                            view
                             returns(bool)
     {
-        return true;  // Modify to call data contract's status
+        return flightSuretyData.isOperational();
     }
 
     /********************************************************************************************/
@@ -104,7 +109,7 @@ contract FlightSuretyApp {
     function registerAirline
                             (
                                 address airlineAddress,
-                                string name
+                                string calldata name
                             )
                             external
                             returns(bool success, uint256 votes)
@@ -121,16 +126,19 @@ contract FlightSuretyApp {
     */
     function registerFlight
                                 (
-                                    string flight,
+                                    string calldata flight,
+                                    string calldata destination,
                                     uint256 timestamp
                                 )
                                 external
     {
-        bytes32 key = keccak256(abi.encodePacked(flight, timestamp));
+        bytes32 key = keccak256(abi.encodePacked(flight, msg.sender));
         require(!flights[key].isRegistered, "Flight is already registered.");
-        
+
         flights[key] = Flight({
                                         isRegistered: true,
+                                        flightCode: flight,
+                                        destination: destination,
                                         statusCode: STATUS_CODE_UNKNOWN,
                                         updatedTimestamp: timestamp,
                                         airline: msg.sender
@@ -150,8 +158,12 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
     {
+        bytes32 key = keccak256(abi.encodePacked(flight, msg.sender));
+        require(flights[key].isRegistered, "Flight is not registered.");
+
+        flights[key].updatedTimestamp = timestamp;
+        flights[key].statusCode = statusCode;
     }
 
 
@@ -159,7 +171,7 @@ contract FlightSuretyApp {
     function fetchFlightStatus
                         (
                             address airline,
-                            string flight,
+                            string calldata flight,
                             uint256 timestamp
                         )
                         external
@@ -242,9 +254,9 @@ contract FlightSuretyApp {
     function getMyIndexes
                             (
                             )
-                            view
                             external
-                            returns(uint8[3])
+                            view
+                            returns(uint8[3] memory)
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
 
@@ -262,7 +274,7 @@ contract FlightSuretyApp {
                         (
                             uint8 index,
                             address airline,
-                            string flight,
+                            string calldata flight,
                             uint256 timestamp,
                             uint8 statusCode
                         )
@@ -292,11 +304,11 @@ contract FlightSuretyApp {
     function getFlightKey
                         (
                             address airline,
-                            string flight,
+                            string memory flight,
                             uint256 timestamp
                         )
-                        pure
                         internal
+                        pure
                         returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
@@ -308,7 +320,7 @@ contract FlightSuretyApp {
                                 address account
                             )
                             internal
-                            returns(uint8[3])
+                            returns(uint8[3] memory)
     {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
@@ -351,5 +363,6 @@ contract FlightSuretyApp {
 }
 
 contract FlightSuretyData {
-    function registerAirline(address airlineAddress, string name) external returns (bool success, uint256 votes);
+    function registerAirline(address airlineAddress, string calldata name) external returns (bool success, uint256 votes);
+    function isOperational() public view returns(bool);
 }
