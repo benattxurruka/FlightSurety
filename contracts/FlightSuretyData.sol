@@ -11,7 +11,7 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-    address payable public dataContractAddress;
+    // address payable public dataContractAddress;
     mapping(address => uint8) private authorizedContracts;
 
     // airlines info
@@ -20,7 +20,7 @@ contract FlightSuretyData {
         bool isRegistered;
         string name;
         uint256 funded;
-        address[] votes;
+        uint256 votes;
     }
     mapping(address => Airline) private airlines;
 
@@ -31,10 +31,12 @@ contract FlightSuretyData {
         uint256 credit;
     }
     mapping(address => Passenger) private passengers;
+    uint256 public constant INSURANCE_PRICE_LIMIT = 1 ether;
+    uint256 public constant MINIMUM_FUNDS = 10 ether;
 
     //multiparty variables
     uint8 private constant MULTIPARTY_MIN_AIRLINES = 4;
-    uint256 private airlinesCount;
+    uint256 public airlinesCount;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -53,6 +55,17 @@ contract FlightSuretyData {
         contractOwner = msg.sender;
         airlinesCount = 0;
         authorizedContracts[msg.sender] = 1;
+
+        // 	First airline is registered when contract is deployed.
+        airlines[msg.sender] = Airline({
+                                            airlineWallet: msg.sender,
+                                            isRegistered: true,
+                                            name: "Genesis Airline",
+                                            funded: 0,
+                                            // votes: new address[](0)
+                                            votes: 0
+                                    });
+        airlinesCount++;
     }
 
     /********************************************************************************************/
@@ -79,15 +92,6 @@ contract FlightSuretyData {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
-        _;
-    }
-
-    /**
-    * @dev Modifier that requires the current account to have funded at least 10 eth
-    */
-    modifier requireMinimumFunded()
-    {
-        require(airlines[msg.sender].funded >= 10 ether, "You have not funded the minimum of 10 ether");
         _;
     }
 
@@ -127,6 +131,16 @@ contract FlightSuretyData {
         authorizedContracts[contractAddress] = 1;
     }
 
+     function isAuthorized
+                            (
+                                address contractAddress
+                            )
+                            external
+                            returns(bool)
+    {
+        return(authorizedContracts[contractAddress] == 1);
+    }
+
     function deauthorizeCaller
                             (
                                 address contractAddress
@@ -156,6 +170,10 @@ contract FlightSuretyData {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+    function isActive ( address airline) public view returns(bool) {
+        return(airlines[airline].funded >= MINIMUM_FUNDS);
+    }
+
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
@@ -168,13 +186,10 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
-                            requireMinimumFunded
                             requireIsCallerAuthorized
-                            returns(bool success, uint256 votes)
     {
         require(airlineAddress != address(0), "'airlineAddress' must be a valid address.");
         require(!airlines[airlineAddress].isRegistered, "Airline is already registered.");
-        require(!checkIfContains(airlines[airlineAddress].votes), "You already voted to register this airline.");
 
         if(airlinesCount < MULTIPARTY_MIN_AIRLINES){
             airlines[airlineAddress] = Airline({
@@ -182,30 +197,24 @@ contract FlightSuretyData {
                                                 isRegistered: true,
                                                 name: name,
                                                 funded: 0,
-                                                votes: new address[](0)
+                                                votes: 1
                                         });
-            airlines[airlineAddress].votes.push(msg.sender);
-            airlinesCount.add(1);
+            airlinesCount++;
         } else {
-            airlines[airlineAddress].votes.push(msg.sender);
-            if (airlines[airlineAddress].votes.length >= airlinesCount.div(2)) {
-                airlines[airlineAddress].isRegistered = true;
-                airlinesCount.add(1);
-            }
+            vote(airlineAddress);
         }
-
-        return (true, airlines[airlineAddress].votes.length);
     }
 
-    function checkIfContains(address[] memory voters) internal returns(bool alreadyVoted){
-        alreadyVoted = false;
-        for (uint256 c = 0; c < voters.length; c++) {
-            if (voters[c] == msg.sender) {
-                alreadyVoted = true;
-                break;
-            }
+    function vote (address voted) internal requireIsOperational {
+        airlines[voted].votes++;
+        if (airlines[voted].votes >= airlinesCount.div(2)) {
+            airlines[voted].isRegistered = true;
+            airlinesCount++;
         }
-        return alreadyVoted;
+    }
+
+    function getAirlineVotes(address airline) public view returns (uint256 votes) {
+        return (airlines[airline].votes);
     }
 
    /**
@@ -219,7 +228,11 @@ contract FlightSuretyData {
                             )
                             external
                             payable
+                            requireIsOperational
     {
+        require(msg.sender == tx.origin, "Contracts not allowed");
+        require(msg.value > 0, 'You need to pay something to buy a flight insurance');
+
         if (passengers[msg.sender].passengerWallet != msg.sender) {
             passengers[msg.sender] = Passenger({
                                                 passengerWallet: msg.sender,
@@ -229,6 +242,7 @@ contract FlightSuretyData {
         } else {
             passengers[msg.sender].boughtFlight[flightCode] = price;
         }
+        msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
     }
 
     /**
@@ -240,6 +254,7 @@ contract FlightSuretyData {
                                     string calldata flightCode
                                 )
                                 external
+                                requireIsOperational
     {
         require(passengers[passenger].boughtFlight[flightCode] != 0, "The passenger does not bought a ticket for this flight");
         uint256 payedPrice = passengers[passenger].boughtFlight[flightCode];
@@ -255,7 +270,11 @@ contract FlightSuretyData {
                             (
                             )
                             external
+                            requireIsOperational
     {
+        require(msg.sender == tx.origin, "Contracts not allowed");
+        require(passengers[msg.sender].credit >= 0, "The company didn't put any money to be withdrawed by you");
+
         uint256 credit = passengers[msg.sender].credit;
         passengers[msg.sender].credit = 0;
         msg.sender.transfer(credit);
@@ -271,8 +290,23 @@ contract FlightSuretyData {
                             )
                             public
                             payable
+                            requireIsOperational
     {
-        airlines[msg.sender].funded.add(msg.value);
+        uint256 currentFunds = airlines[msg.sender].funded;
+        airlines[msg.sender].funded = currentFunds.add(msg.value);
+    }
+
+    function isAirline (
+                            address airline
+                        )
+                        external
+                        view
+                        returns (bool) {
+        if (airlines[airline].airlineWallet == airline) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function getFlightKey
@@ -281,8 +315,8 @@ contract FlightSuretyData {
                             string memory flight,
                             uint256 timestamp
                         )
-                        pure
                         internal
+                        pure
                         returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
