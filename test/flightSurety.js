@@ -6,6 +6,7 @@ var BigNumber = require('bignumber.js');
 
 contract('Flight Surety Tests', async (accounts) => {
 
+  const TEST_ORACLES_COUNT = 20;
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
@@ -146,23 +147,44 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(airlinesCount, 4, "Airlines count should be one after contract deploy.");
   });
 
-  it("Passengers may pay up to 1 ether for purchasing flight insurance.", async () => {
+  it("(passenger) may pay up to 1 ether for purchasing flight insurance.", async () => {
+    // ARRANGE
+    let price = await config.flightSuretyData.INSURANCE_PRICE_LIMIT.call();
 
-  });
+    // ACT
+    try {
+        await config.flightSuretyData.buy("CODE123", {from: accounts[10], value: price});
+    }
+    catch(e) {
+      console.log(e);
+    }
 
-  it("If flight is delayed due to airline fault, passenger receives credit of 1.5X the amount they paid", async () => {
-
-  });
-  
-  it("Passenger can withdraw any funds owed to them as a result of receiving credit for insurance payout", async () => {
-
+    let registeredPassenger = await config.flightSuretyData.passengerAddresses.call(0); 
+    assert.equal(registeredPassenger, accounts[10], "Passenger should be added to list of people who bought a ticket.");
   });
 
   it("Upon startup, 20+ oracles are registered and their assigned indexes are persisted in memory", async () => {
+    // ARRANGE
+    let fee = await config.flightSuretyApp.REGISTRATION_FEE.call();
 
+    // ACT
+    for(let a=20; a<TEST_ORACLES_COUNT+20; a++) {      
+      await config.flightSuretyApp.registerOracle({ from: accounts[a], value: fee});
+      let result = await config.flightSuretyApp.getMyIndexes.call({ from: accounts[a]});
+      // console.log(`Oracle Registered: ${result[0]}, ${result[1]}, ${result[2]}`)
+      assert.equal(result.length, 3, 'Oracle should be registered with three indexes');
+    }
   });
 
   it("Server will loop through all registered oracles, identify those oracles for which the OracleRequest event applies, and respond by calling into FlightSuretyApp contract with random status code", async () => {
+
+  });
+
+  it("(passenger) receives credit of 1.5X the amount they paid, if flight is delayed due to airline fault", async () => {
+
+  });
+  
+  it("(passenger) can withdraw any funds owed to them as a result of receiving credit for insurance payout", async () => {
 
   });
 

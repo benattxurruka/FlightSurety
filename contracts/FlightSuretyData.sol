@@ -31,6 +31,8 @@ contract FlightSuretyData {
         uint256 credit;
     }
     mapping(address => Passenger) private passengers;
+    address[] public passengerAddresses;
+
     uint256 public constant INSURANCE_PRICE_LIMIT = 1 ether;
     uint256 public constant MINIMUM_FUNDS = 10 ether;
 
@@ -55,6 +57,7 @@ contract FlightSuretyData {
         contractOwner = msg.sender;
         airlinesCount = 0;
         authorizedContracts[msg.sender] = 1;
+        passengerAddresses = new address[](0);
 
         // 	First airline is registered when contract is deployed.
         airlines[msg.sender] = Airline({
@@ -223,8 +226,7 @@ contract FlightSuretyData {
     */
     function buy
                             (
-                                string calldata flightCode,
-                                uint256 price
+                                string calldata flightCode
                             )
                             external
                             payable
@@ -233,16 +235,30 @@ contract FlightSuretyData {
         require(msg.sender == tx.origin, "Contracts not allowed");
         require(msg.value > 0, 'You need to pay something to buy a flight insurance');
 
+        if(!checkIfContains(msg.sender)){
+            passengerAddresses.push(msg.sender);
+        }
         if (passengers[msg.sender].passengerWallet != msg.sender) {
             passengers[msg.sender] = Passenger({
                                                 passengerWallet: msg.sender,
                                                 credit: 0
                                         });
-            passengers[msg.sender].boughtFlight[flightCode] = price;
+            passengers[msg.sender].boughtFlight[flightCode] = msg.value;
         } else {
-            passengers[msg.sender].boughtFlight[flightCode] = price;
+            passengers[msg.sender].boughtFlight[flightCode] = msg.value;
         }
         msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
+    }
+
+    function checkIfContains(address passenger) internal returns(bool inList){
+        inList = false;
+        for (uint256 c = 0; c < passengerAddresses.length; c++) {
+            if (passengerAddresses[c] == passenger) {
+                inList = true;
+                break;
+            }
+        }
+        return inList;
     }
 
     /**
@@ -250,15 +266,17 @@ contract FlightSuretyData {
     */
     function creditInsurees
                                 (
-                                    address passenger,
                                     string calldata flightCode
                                 )
                                 external
                                 requireIsOperational
     {
-        require(passengers[passenger].boughtFlight[flightCode] != 0, "The passenger does not bought a ticket for this flight");
-        uint256 payedPrice = passengers[passenger].boughtFlight[flightCode];
-        passengers[passenger].credit = payedPrice + payedPrice.div(2);
+        for (uint256 c = 0; c < passengerAddresses.length; c++) {
+            if(passengers[passengerAddresses[c]].boughtFlight[flightCode] != 0) {
+                uint256 payedPrice = passengers[passengerAddresses[c]].boughtFlight[flightCode];
+                passengers[passengerAddresses[c]].credit = payedPrice + payedPrice.div(2);
+            }
+        }
     }
 
 
