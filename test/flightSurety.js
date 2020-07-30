@@ -147,6 +147,19 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(airlinesCount, 4, "Airlines count should be one after contract deploy.");
   });
 
+  it('(airline) can register a flight using registerFlight()', async () => {
+    // ARRANGE
+    let timestamp = Math.floor(Date.now() / 1000); //convert timestamp from miliseconds (javascript) to seconds (solidity)
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerFlight("CODE123", "Zurich", timestamp, {from: config.firstAirline});
+    }
+    catch(e) {
+      console.log(e);
+    }
+  });
+
   it("(passenger) may pay up to 1 ether for purchasing flight insurance.", async () => {
     // ARRANGE
     let price = await config.flightSuretyData.INSURANCE_PRICE_LIMIT.call();
@@ -171,13 +184,34 @@ contract('Flight Surety Tests', async (accounts) => {
     for(let a=20; a<TEST_ORACLES_COUNT+20; a++) {      
       await config.flightSuretyApp.registerOracle({ from: accounts[a], value: fee});
       let result = await config.flightSuretyApp.getMyIndexes.call({ from: accounts[a]});
-      // console.log(`Oracle Registered: ${result[0]}, ${result[1]}, ${result[2]}`)
       assert.equal(result.length, 3, 'Oracle should be registered with three indexes');
     }
   });
 
   it("Server will loop through all registered oracles, identify those oracles for which the OracleRequest event applies, and respond by calling into FlightSuretyApp contract with random status code", async () => {
+    // ARRANGE
+    let flight = 'CODE123'; // Course number
+    let timestamp = Math.floor(Date.now() / 1000); //convert timestamp from miliseconds (javascript) to seconds (solidity)
 
+    // Submit a request for oracles to get status information for a flight
+    await config.flightSuretyApp.fetchFlightStatus(accounts[1], flight, timestamp);
+
+    for(let a=20; a<TEST_ORACLES_COUNT; a++) {
+
+      let oracleIndexes = await config.flightSuretyApp.getMyIndexes({from: accounts[a]});
+      for(let idx=0;idx<3;idx++) {
+
+        try {
+          // Submit a response...it will only be accepted if there is an Index match
+          await config.flightSuretyApp.submitOracleResponse(oracleIndexes[idx], config.firstAirline, flight, timestamp, 10, { from: accounts[a] });
+        }
+        catch(e) {
+          // Enable this when debugging
+          // console.log('\nError', idx, oracleIndexes[idx].toNumber(), flight, timestamp);
+        }
+
+      }
+    }
   });
 
   it("(passenger) receives credit of 1.5X the amount they paid, if flight is delayed due to airline fault", async () => {
