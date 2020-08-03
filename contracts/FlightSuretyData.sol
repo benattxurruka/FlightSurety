@@ -279,7 +279,9 @@ contract FlightSuretyData {
         }
     }
 
-
+    function getCreditToPay() external returns (uint256) {
+        return passengers[msg.sender].credit;
+    }
     /**
      *  @dev Transfers eligible payout funds to insuree
      *

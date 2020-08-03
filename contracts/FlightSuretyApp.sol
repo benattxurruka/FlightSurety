@@ -210,6 +210,10 @@ contract FlightSuretyApp {
 
         flights[key].updatedTimestamp = timestamp;
         flights[key].statusCode = statusCode;
+
+        if (statusCode == STATUS_CODE_LATE_AIRLINE) {
+            flightSuretyData.creditInsurees(flight);
+        }
     }
 
 
@@ -235,6 +239,19 @@ contract FlightSuretyApp {
         emit OracleRequest(index, airline, flight, timestamp);
     }
 
+    // Query the status of any flight
+    function viewFlightStatus
+                            (
+                                string calldata flight,
+                                address airline
+                            )
+                            external
+                            view
+                            returns(uint8)
+    {
+            bytes32 key = keccak256(abi.encodePacked(flight, airline));
+            return flights[key].statusCode;
+    }
 
 // region ORACLE MANAGEMENT
 
@@ -414,5 +431,6 @@ contract FlightSuretyData {
     function isActive ( address airline) public view returns(bool);
     function registerAirline(address airlineAddress, string calldata name) external;
     function getAirlineVotes(address airline) public view returns (uint256 votes);
+    function creditInsurees (string calldata flightCode) external;
     // function fund() public payable;
 }
