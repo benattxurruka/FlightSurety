@@ -290,6 +290,7 @@ contract FlightSuretyData {
                             (
                             )
                             external
+                            payable
                             requireIsOperational
     {
         require(msg.sender == tx.origin, "Contracts not allowed");

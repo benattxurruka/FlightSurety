@@ -224,7 +224,21 @@ contract('Flight Surety Tests', async (accounts) => {
   });
   
   it("(passenger) can withdraw any funds owed to them as a result of receiving credit for insurance payout", async () => {
+    let creditToPay = await config.flightSuretyData.getCreditToPay.call({from: config.firstPassenger});
 
+    let passengerOriginalBalance = await web3.eth.getBalance(config.firstPassenger);
+    let receipt = await config.flightSuretyData.pay({from: config.firstPassenger});
+    let passengerFinalBalance = await web3.eth.getBalance(config.firstPassenger);
+
+    // Obtain total gas cost
+    const gasUsed = Number(receipt.receipt.gasUsed);
+    const tx = await web3.eth.getTransaction(receipt.tx);
+    const gasPrice = Number(tx.gasPrice);
+    
+    let finalCredit = await config.flightSuretyData.getCreditToPay.call({from: config.firstPassenger});
+    
+    assert.equal(finalCredit.toString(), 0, "Passenger should have transfered the ethers to its wallet.");
+    assert.equal(Number(passengerOriginalBalance) + Number(creditToPay) - (gasPrice * gasUsed), Number(passengerFinalBalance), "Passengers balance should have increased the amount it had credited");
   });
 
 });
