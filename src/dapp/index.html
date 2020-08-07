@@ -21,10 +21,84 @@
 
     <main class="container">
 
+        <!-- <form> -->
+            <h2>Airline actions</h2>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Airline address</label>
+                <input type="text" class="form-control" id="airline-address" placeholder="Address">
+              </div>
+              <div class="form-group col-md-6">
+                <label>Airline name</label>
+                <input type="text" class="form-control" id="airline-name" placeholder="Name">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="register-airline">Register Airline</button>
+            <div class="form-group top-20">
+              <label>Fund</label>
+              <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                      <div class="input-group-text">eth</div>
+                  </div>
+                  <input type="text" class="form-control" id="funds" placeholder="Number of Ethers to fund. Needs 10 to be operational. You only can fund yourself.">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="fund">Fund</button>
+
+            <div class="top-20"><h2>Flights actions</h2></div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Flight Number</label>
+                <input type="text" class="form-control" id="new-flight-number"> 
+              </div>
+              <div class="form-group col-md-6">
+                <label>Flight Destination</label>
+                <input type="text" class="form-control" id="new-flight-destination" placeholder="City name">
+              </div>
+            </div>  
+            <button class="btn btn-primary" id="register-flight">Register Flight</button>
+            <div class="form-group top-20">
+              <label>Flight Number</label>
+              <input type="text" class="form-control" id="flight-number">
+            </div>
+            <button class="btn btn-primary" id="submit-oracle">Submit to Oracles</button>
+
+            <div class="top-20"><h2>Passengers actions</h2></div>
+            <div class="form-row top-20">
+              <div class="form-group col-md-6">
+                <label>Flight number</label>
+                <input type="text" class="form-control" id="insurance-flight">
+              </div>
+              <div class="form-group col-md-6">
+                <label>Insurance payment</label>
+                <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                      <div class="input-group-text">eth</div>
+                  </div>
+                  <input type="text" class="form-control" id="insurance-price">
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="buy-insurance">Buy insurance</button>
+            <div class="form-row top-20">
+              <label>Get paid</label>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                  <div class="form-row">
+                    <div class="form-group col-md-1.5">
+                      <button class="btn btn-primary" id="check-credit">Check credit</button>
+                    </div>
+                    <div class="form-group col-md">
+                        <input type="text" class="form-control" id="credit-ammount" placeholder="Here will be displayed your credit" disabled>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group col-md-6">
+                  <button class="btn btn-primary" id="claim-credit">Claim credit</button>
+                </div>
+            </div>
         <div id="display-wrapper" class="top-20">
-        </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
         </div>
     </main>
 

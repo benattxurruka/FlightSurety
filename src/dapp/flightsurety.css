@@ -5,7 +5,8 @@ body {
 }
 
 .container {
-    margin-top: 400px;
+    margin-top: 200px;
+    margin-bottom: 100px;
     background-color: #000;
     opacity: 0.9;
     color: #fff;
