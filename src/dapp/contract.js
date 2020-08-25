@@ -17,12 +17,29 @@ export default class Contract {
         this.accounts = [];
     }
 
-    initialize(callback) {
+    async initialize(callback) {
+        if (window.ethereum) {
+            try {
+                this.web3 = new Web3(window.ethereum);
+                // Request account access
+                await window.ethereum.enable();
+            } catch (error) {
+                // User denied account access...
+                console.error("User denied account access")
+            }
+        }
+        if (typeof this.web3 == "undefined") {
+            this.web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
+            console.log("local ganache provider");
+        }
+        
+
         this.web3.eth.getAccounts((error, accts) => {
            
             this.owner = accts[0];
 
             this.accounts = accts;
+            console.log(this.accounts);
 
             let counter = 1;
             
@@ -33,6 +50,15 @@ export default class Contract {
             while(this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
+
+            callback();
+        });
+    }
+
+    async refreshAccounts(callback){
+        this.web3.eth.getAccounts((error, accts) => {
+
+            this.accounts = accts;
 
             callback();
         });
@@ -59,23 +85,20 @@ export default class Contract {
             });
     }
 
-    registerAirline(address, name) {
+    registerAirline(address, name, sender, callback) {
         let self = this;
         let payload = {
             airlineAddress: address,
-            name: name
+            name: name,
+            sender: sender
         }
         self.flightSuretyData.methods
             .registerAirline(payload.airlineAddress, payload.name)
-            .send({ from: self.owner}, (error, result) => {
-                if(error) {
-                    console.log(error);
-                  } 
-                  else {
-                    alert('Registered: ' + payload.name);
-                    console.log('Registered: ' + payload.name);
-                    console.log(payload);
-                  }
+            .send({ from: payload.sender,
+                gas: 5000000,
+                gasPrice: 20000000
+            }, (error, result) => {
+                callback(error, payload);
             });
     }
 
@@ -93,15 +116,16 @@ export default class Contract {
 
     registerFlight(flight, destination, callback) {
         let self = this;
-        console.log(self.accounts);
         let payload = {
             flight: flight,
             destination: destination,
             timestamp: Math.floor(Date.now() / 1000)
-        } 
+        }
         self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.destination, payload.timestamp)
-            .send({ from: self.accounts[6]}, (error, result) => {
+            .send({ from: self.accounts[0],
+                gas: 5000000,
+                gasPrice: 20000000}, (error, result) => {
                 callback(error, payload);
             });
     }

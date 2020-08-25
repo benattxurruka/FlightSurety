@@ -3,12 +3,16 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
-
+// var airlines = [[]];
 (async() => {
 
     let result = null;
 
     let contract = new Contract('localhost', () => {
+       
+        DOM.elid('UdacityAir').value = contract.owner;
+        DOM.elid('selected-airline-name').value = 'UdacityAir';
+        DOM.elid('selected-airline-address').value = contract.owner;
 
         // Read transaction
         contract.isOperational((error, result) => {
@@ -27,14 +31,20 @@ import './flightsurety.css';
         })
 
         // User-submitted transaction
-        DOM.elid('register-airline').addEventListener('click', (e) => {
-            e.preventDefault();
+        DOM.elid('register-airline').addEventListener('click', async() => {
+            // e.preventDefault();
             let address = DOM.elid('airline-address').value;
             let name = DOM.elid('airline-name').value;
-            console.log('address: '+address+'. Name: '+name);
+            let sender = DOM.elid('selected-airline-address').value;
+
             // Write transaction
-            contract.registerAirline(address, name, (error, result) => {
-                display('Airlines', 'Register a new airline', [ { label: 'Register Airline', error: error, value: result.address + ' ' + result.name} ]);
+            contract.registerAirline(address, name, sender, (error, result) => {
+                display('Airlines', 'Register a new airline', [ { label: 'Register Airline', error: error, value: result.airlineAddress + ' ' + result.name} ]);
+                if(!error){
+                    addAirlineOption(name, address);
+                } else {
+                    console.log(error);
+                }
             });
         })
         
@@ -52,9 +62,19 @@ import './flightsurety.css';
         DOM.elid('register-flight').addEventListener('click', () => {
             let flight = DOM.elid('new-flight-number').value;
             let destination = DOM.elid('new-flight-destination').value;
+            
             // Write transaction
+            contract.refreshAccounts((error, result) => {
+                if(error){
+                    console.log(error);
+                }
+            });
             contract.registerFlight(flight, destination, (error, result) => {
-                display('New Flights', 'Register a new flight', [ { label: 'New Flight info', error: error, value: result.flight + ' ' + result.destination} ]);
+                // console.log(result);
+                display('', 'New flight registered', [ { label: 'Flight info:', error: error, value: 'Code:'+result.flight + ' Destination: ' + result.destination} ]);
+                if (!error) {
+                    flightDisplay(flight, destination, result.address, result.timestamp);
+                }
             });
         })
 
@@ -97,17 +117,24 @@ import './flightsurety.css';
                 }
             });
         })
-        
+
+        DOM.elid('airlineDropdownOptions').addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            DOM.elid("selected-airline-name").value = e.srcElement.innerHTML;
+            DOM.elid("selected-airline-address").value = e.srcElement.value;
+        })
     });
     
 
 })();
 
-
 function display(title, description, results) {
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
-    section.appendChild(DOM.h2(title));
+    if(title != ''){
+        section.appendChild(DOM.h2(title));
+    }
     section.appendChild(DOM.h5(description));
     results.map((result) => {
         let row = section.appendChild(DOM.div({className:'row'}));
@@ -116,12 +143,30 @@ function display(title, description, results) {
         section.appendChild(row);
     })
     displayDiv.append(section);
-
 }
 
+let flightCount = 0;
 
+function flightDisplay(flight, destination, airlineName, time) {
+    var table = DOM.elid("flights-display");
 
+    flightCount++;
+    var row = table.insertRow(flightCount);
+    
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+    
+    var date = new Date(+time);
+    // Add some text to the new cells:
+    cell1.innerHTML = "<b>✈ " + flight+"</b>";
+    cell2.innerHTML = destination.toUpperCase();
+    cell3.innerHTML = date.getHours()+":"+date.getMinutes();
+}
 
+function addAirlineOption(airlineName, hash) {
+    var dropdown = DOM.elid("airlineDropdownOptions");
 
-
-
+    let newOption = DOM.button({className: 'dropdown-item', value: hash, type:"button"}, airlineName);
+    dropdown.appendChild(newOption);
+}

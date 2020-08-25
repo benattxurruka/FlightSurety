@@ -1,4 +1,5 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json';
+import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
 import Config from './config.json';
 import Web3 from 'web3';
 import express from 'express';
@@ -8,6 +9,7 @@ let config = Config['localhost'];
 let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
 web3.eth.defaultAccount = web3.eth.accounts[0];
 let flightSuretyApp = new web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+let flightSuretyData = new web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
 
 let oracleAccounts = [];
 let oraclesIndexList = [];
@@ -36,28 +38,28 @@ app.get('/api/status/:status', (req, res) => {
   switch(status) {
     case 10:
       defaultStatus = STATUS_CODE_ON_TIME;
-    message = message.concat("ON TIME");
-    break;
+      message = message.concat("ON TIME");
+      break;
     case 20:
-    defaultStatus = STATUS_CODE_LATE_AIRLINE;
-    message = message.concat("LATE AIRLINE");
-    break;
-  case 30:
-    defaultStatus = STATUS_CODE_LATE_WEATHER;
-    message = message.concat("LATE WEATHER");
-    break;
+      defaultStatus = STATUS_CODE_LATE_AIRLINE;
+      message = message.concat("LATE AIRLINE");
+      break;
+    case 30:
+      defaultStatus = STATUS_CODE_LATE_WEATHER;
+      message = message.concat("LATE WEATHER");
+      break;
     case 40:
       defaultStatus = STATUS_CODE_LATE_TECHNICAL;
-    message = message.concat("LATE TECHNICAL");
-    break;
-  case 50:
-    defaultStatus = STATUS_CODE_LATE_OTHER;
-    message = message.concat("LATE OTHER");
-    break;
+      message = message.concat("LATE TECHNICAL");
+      break;
+    case 50:
+      defaultStatus = STATUS_CODE_LATE_OTHER;
+      message = message.concat("LATE OTHER");
+      break;
     default:
-    defaultStatus = STATUS_CODE_UNKNOWN;
-    message = message.concat("UNKNOWN");
-    break;
+      defaultStatus = STATUS_CODE_UNKNOWN;
+      message = message.concat("UNKNOWN");
+      break;
   }
   res.send({
     message: message
@@ -100,6 +102,14 @@ function submitOracleResponse(oracle, index, airline, flight, timestamp) {
       console.log(error, payload);
     }
   });
+
+  if(defaultStatus == STATUS_CODE_LATE_AIRLINE){
+    flightSuretyData.methods.creditInsurees(flight).call({ from: oracle}, (error, result) => {
+      if(error){
+        console.log(error, payload);
+      }
+    });
+  }
 }
 
 function getOracleAccounts() {
