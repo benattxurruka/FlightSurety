@@ -247,7 +247,9 @@ contract FlightSuretyData {
         } else {
             passengers[msg.sender].boughtFlight[flightCode] = msg.value;
         }
-        msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
+        if (msg.value > INSURANCE_PRICE_LIMIT) {
+            msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
+        }
     }
 
     function checkIfContains(address passenger) internal returns(bool inList){
