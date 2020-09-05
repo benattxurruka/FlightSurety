@@ -24,8 +24,10 @@ import './flightsurety.css';
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
+            let selectedAirlineAddress = DOM.elid('selected-airline-address').value;
+            
             // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
+            contract.fetchFlightStatus(selectedAirlineAddress, flight, (error, result) => {
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
@@ -36,6 +38,7 @@ import './flightsurety.css';
             let address = DOM.elid('airline-address').value;
             let name = DOM.elid('airline-name').value;
             let sender = DOM.elid('selected-airline-address').value;
+            refreshAccounts();
 
             // Write transaction
             contract.registerAirline(address, name, sender, (error, result) => {
@@ -52,9 +55,10 @@ import './flightsurety.css';
         DOM.elid('fund').addEventListener('click', () => {
             // e.preventDefault();
             let funds = DOM.elid('funds').value;
+            refreshAccounts();
             // Write transaction
             contract.fund(funds, (error, result) => {
-                display('Funds', 'Fund yourself', [ { label: 'Fund added to airline', error: error, value: result.funds} ]);
+                display('Funds', 'Fund yourself', [ { label: 'Fund added to airline', error: error, value: result.funds+" wei"} ]);
             });
         })
 
@@ -63,12 +67,8 @@ import './flightsurety.css';
             let flight = DOM.elid('new-flight-number').value;
             let destination = DOM.elid('new-flight-destination').value;
             
+            refreshAccounts();
             // Write transaction
-            contract.refreshAccounts((error, result) => {
-                if(error){
-                    console.log(error);
-                }
-            });
             contract.registerFlight(flight, destination, (error, result) => {
                 // console.log(result);
                 display('', 'New flight registered', [ { label: 'Flight info:', error: error, value: 'Code:'+result.flight + ' Destination: ' + result.destination} ]);
@@ -82,6 +82,7 @@ import './flightsurety.css';
         DOM.elid('buy-insurance').addEventListener('click', () => {
             let flight = DOM.elid('insurance-flight').value;
             let price = DOM.elid('insurance-price').value;
+            refreshAccounts();
             // Write transaction
             contract.buy(flight, price, (error, result) => {
                 display('Buy insurance', 'Buy a new flight insurance', [ { label: 'Bought insurance info', error: error, value: result.flight} ]);
@@ -90,6 +91,7 @@ import './flightsurety.css';
 
         // User-submitted transaction
         DOM.elid('check-credit').addEventListener('click', () => {
+            refreshAccounts();
             // Write transaction
             contract.getCreditToPay((error, result) => {
                 if(error){
@@ -105,6 +107,7 @@ import './flightsurety.css';
 
         // User-submitted transaction
         DOM.elid('claim-credit').addEventListener('click', () => {
+            refreshAccounts();
             // Write transaction
             contract.pay((error, result) => {
                 if(error){
@@ -124,6 +127,14 @@ import './flightsurety.css';
             DOM.elid("selected-airline-name").value = e.srcElement.innerHTML;
             DOM.elid("selected-airline-address").value = e.srcElement.value;
         })
+
+        function refreshAccounts() {
+            contract.refreshAccounts((error, result) => {
+                if(error){
+                    console.log(error);
+                }
+            });
+        }
     });
     
 

@@ -36,28 +36,6 @@
       </table>
 
       <h2>Operator</h2>
-      <div class="form-row">
-        <div class="form-group col-md-2">
-          <label>Airline list</label>
-          <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Select an airline
-            </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="airlineDropdownOptions">
-              <button class="dropdown-item" value="#" type="button" id="UdacityAir">UdacityAir</button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-md-4">
-          <label>Selected Airline</label>
-          <input type="text" class="form-control" id="selected-airline-name" placeholder="Name">
-        </div>
-        <div class="form-group col-md-6">
-          <label>Airline address</label>
-          <input type="text" class="form-control" id="selected-airline-address" placeholder="Name">
-        </div>
-      </div>
-        <!-- <form> -->
             <h2>Airline actions</h2>
             <div class="form-row">
               <div class="form-group col-md-6">
@@ -74,7 +52,7 @@
               <label>Fund</label>
               <div class="input-group mb-2">
                   <div class="input-group-prepend">
-                      <div class="input-group-text">eth</div>
+                      <div class="input-group-text">ETH</div>
                   </div>
                   <input type="text" class="form-control" id="funds" placeholder="Number of Ethers to fund. Needs 10 to be operational. You only can fund yourself.">
               </div>
@@ -93,9 +71,31 @@
               </div>
             </div>  
             <button class="btn btn-primary" id="register-flight">Register Flight</button>
-            <div class="form-group top-20">
-              <label>Flight Number</label>
-              <input type="text" class="form-control" id="flight-number">
+
+            <div class="form-row top-20">
+              <div class="form-group col-md-2">
+                <label>Airline list</label>
+                <div class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Select an airline
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="airlineDropdownOptions">
+                    <button class="dropdown-item" value="#" type="button" id="UdacityAir">UdacityAir</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group col-md-2">
+                <label>Selected Airline</label>
+                <input type="text" class="form-control" id="selected-airline-name" placeholder="Name" disabled>
+              </div>
+              <div class="form-group col-md-6">
+                <label>Airline address</label>
+                <input type="text" class="form-control" id="selected-airline-address" disabled>
+              </div>
+              <div class="form-group col-md-2">
+                <label>Flight Number</label>
+                <input type="text" class="form-control" id="flight-number" placeholder="Flight">
+              </div>
             </div>
             <button class="btn btn-primary" id="submit-oracle">Submit to Oracles</button>
 
@@ -109,7 +109,7 @@
                 <label>Insurance payment</label>
                 <div class="input-group mb-2">
                   <div class="input-group-prepend">
-                      <div class="input-group-text">wei</div>
+                      <div class="input-group-text">ETH</div>
                   </div>
                   <input type="text" class="form-control" id="insurance-price">
                 </div>

@@ -71,16 +71,16 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
-    fetchFlightStatus(flight, callback) {
+    fetchFlightStatus(airline, flight, callback) {
         let self = this;
         let payload = {
-            airline: self.airlines[0],
+            airline: airline,
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-            .send({ from: self.owner}, (error, result) => {
+            .send({ from: self.accounts[0]}, (error, result) => {
                 callback(error, payload);
             });
     }
@@ -104,12 +104,14 @@ export default class Contract {
 
     fund(funds, callback) {
         let self = this;
+        let value = this.web3.utils.toWei(funds.toString(), "ether");
         let payload = {
-            funds: funds
+            funds: value
         } 
+        console.log(payload);
         self.flightSuretyData.methods
             .fund()
-            .send({ from: self.owner, value: payload.funds}, (error, result) => {
+            .send({ from: self.owner, value: value}, (error, result) => {
                 callback(error, payload);
             });
     }
@@ -121,6 +123,7 @@ export default class Contract {
             destination: destination,
             timestamp: Math.floor(Date.now() / 1000)
         }
+        console.log(payload);
         self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.destination, payload.timestamp)
             .send({ from: self.accounts[0],
@@ -132,13 +135,18 @@ export default class Contract {
 
     buy(flight, price, callback) {
         let self = this;
+        let priceInWei = this.web3.utils.toWei(price.toString(), "ether");
         let payload = {
             flight: flight,
-            price: price
+            price: priceInWei,
+            passenger: self.accounts[0]
         } 
+        console.log(payload);
         self.flightSuretyData.methods
             .buy(flight)
-            .send({ from: self.owner, value: price}, (error, result) => {
+            .send({ from: self.accounts[0], value: price,
+                gas: 500000,
+                gasPrice: 20000000}, (error, result) => {
                 callback(error, payload);
             });
     }

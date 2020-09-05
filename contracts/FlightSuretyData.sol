@@ -292,13 +292,14 @@ contract FlightSuretyData {
                             (
                             )
                             external
-                            payable
                             requireIsOperational
     {
         require(msg.sender == tx.origin, "Contracts not allowed");
         require(passengers[msg.sender].credit >= 0, "The company didn't put any money to be withdrawed by you");
-
+        
         uint256 credit = passengers[msg.sender].credit;
+        require(address(this).balance >= credit, "The contract does not have enough funds to pay the credit");
+
         passengers[msg.sender].credit = 0;
         msg.sender.transfer(credit);
     }
