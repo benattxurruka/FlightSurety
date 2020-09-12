@@ -44,7 +44,7 @@ contract FlightSuretyData {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-
+    event Bought(uint256, address, uint256);
     /**
     * @dev Constructor
     *      The deploying account becomes contractOwner
@@ -231,6 +231,7 @@ contract FlightSuretyData {
                             external
                             payable
                             requireIsOperational
+                            returns (uint256, address, uint256)
     {
         require(msg.sender == tx.origin, "Contracts not allowed");
         require(msg.value > 0, 'You need to pay something to buy a flight insurance');
@@ -238,6 +239,9 @@ contract FlightSuretyData {
         if(!checkIfContains(msg.sender)){
             passengerAddresses.push(msg.sender);
         }
+        // uint256 value = uint256(msg.value)*10**18;
+        // uint256 value = uint256(msg.value);
+        uint256 paso = 0;
         if (passengers[msg.sender].passengerWallet != msg.sender) {
             passengers[msg.sender] = Passenger({
                                                 passengerWallet: msg.sender,
@@ -249,7 +253,10 @@ contract FlightSuretyData {
         }
         if (msg.value > INSURANCE_PRICE_LIMIT) {
             msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
+            (bool success, ) = msg.sender.call.value(msg.value.sub(INSURANCE_PRICE_LIMIT))("");
+            require(success, string(abi.encodePacked("Transfer failed for credit")));
         }
+        emit Bought(msg.value, msg.sender, INSURANCE_PRICE_LIMIT);
     }
 
     function checkIfContains(address passenger) internal returns(bool inList){
@@ -272,11 +279,14 @@ contract FlightSuretyData {
                                 )
                                 external
                                 requireIsOperational
+                                returns (uint256, address, uint256)
     {
         for (uint256 c = 0; c < passengerAddresses.length; c++) {
             if(passengers[passengerAddresses[c]].boughtFlight[flightCode] != 0) {
                 uint256 payedPrice = passengers[passengerAddresses[c]].boughtFlight[flightCode];
                 passengers[passengerAddresses[c]].credit = payedPrice + payedPrice.div(2);
+                emit Bought(payedPrice, passengerAddresses[c], payedPrice + payedPrice.div(2));
+                return(payedPrice, passengerAddresses[c], payedPrice + payedPrice.div(2));
             }
         }
     }
@@ -293,6 +303,7 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
+                            returns (uint256)
     {
         require(msg.sender == tx.origin, "Contracts not allowed");
         require(passengers[msg.sender].credit >= 0, "The company didn't put any money to be withdrawed by you");
@@ -301,7 +312,11 @@ contract FlightSuretyData {
         require(address(this).balance >= credit, "The contract does not have enough funds to pay the credit");
 
         passengers[msg.sender].credit = 0;
-        msg.sender.transfer(credit);
+        // msg.sender.transfer(credit);
+        (bool success, ) = msg.sender.call.value(credit)("");
+        require(success, string(abi.encodePacked("Transfer failed for credit")));
+        emit Bought(credit, msg.sender, passengers[msg.sender].credit);
+        return credit;
     }
 
    /**

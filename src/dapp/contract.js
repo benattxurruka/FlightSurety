@@ -55,15 +55,6 @@ export default class Contract {
         });
     }
 
-    async refreshAccounts(callback){
-        this.web3.eth.getAccounts((error, accts) => {
-
-            this.accounts = accts;
-
-            callback();
-        });
-    }
-
     isOperational(callback) {
        let self = this;
        self.flightSuretyApp.methods
@@ -77,7 +68,7 @@ export default class Contract {
             airline: airline,
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
-        } 
+        }
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.accounts[0]}, (error, result) => {
@@ -85,13 +76,29 @@ export default class Contract {
             });
     }
 
-    registerAirline(address, name, sender, callback) {
+    viewFlightStatus(airline, flight, callback) {
+        let self = this;
+        let payload = {
+            airline: airline,
+            flight: flight
+        }
+        self.flightSuretyApp.methods
+            .viewFlightStatus(payload.flight, payload.airline)
+            .call({ from: self.accounts[0]}, (error, result) => {
+                callback(error, result);
+            });
+    }
+
+    async registerAirline(address, name, sender, callback) {
         let self = this;
         let payload = {
             airlineAddress: address,
             name: name,
             sender: sender
         }
+        await this.web3.eth.getAccounts((error, accts) => {
+            payload.sender = accts[0];
+        });
         self.flightSuretyData.methods
             .registerAirline(payload.airlineAddress, payload.name)
             .send({ from: payload.sender,
@@ -102,27 +109,42 @@ export default class Contract {
             });
     }
 
-    fund(funds, callback) {
+    async fund(funds, callback) {
         let self = this;
         let value = this.web3.utils.toWei(funds.toString(), "ether");
         let payload = {
-            funds: value
+            funds: value,
+            funder: 0x00
         } 
+        await this.web3.eth.getAccounts((error, accts) => {
+            payload.funder = accts[0];
+        });
         console.log(payload);
         self.flightSuretyData.methods
             .fund()
-            .send({ from: self.owner, value: value}, (error, result) => {
+            .send({ from: payload.funder, value: value}, (error, result) => {
+                if (!error){
+                    self.flightSuretyData.methods.
+                    isActive(payload.funder).call({ from: payload.funder}, (error, result) => {
+                        if(!error){
+                            console.log(`Status: ${result}`);
+                        }
+                    });
+                }
                 callback(error, payload);
             });
     }
 
-    registerFlight(flight, destination, callback) {
+    async registerFlight(flight, destination, callback) {
         let self = this;
         let payload = {
             flight: flight,
             destination: destination,
             timestamp: Math.floor(Date.now() / 1000)
         }
+        await this.web3.eth.getAccounts((error, accts) => {
+            self.accounts = accts;
+        });
         console.log(payload);
         self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.destination, payload.timestamp)
@@ -133,7 +155,7 @@ export default class Contract {
             });
     }
 
-    buy(flight, price, callback) {
+    async buy(flight, price, callback) {
         let self = this;
         let priceInWei = this.web3.utils.toWei(price.toString(), "ether");
         let payload = {
@@ -141,28 +163,38 @@ export default class Contract {
             price: priceInWei,
             passenger: self.accounts[0]
         } 
+        await this.web3.eth.getAccounts((error, accts) => {
+            payload.passenger = accts[0];
+        });
         console.log(payload);
         self.flightSuretyData.methods
             .buy(flight)
-            .send({ from: self.accounts[0], value: price,
+            .send({ from: payload.passenger, value: priceInWei,
                 gas: 500000,
-                gasPrice: 20000000}, (error, result) => {
+                gasPrice: 1
+            }, (error, result) => {
                 callback(error, payload);
             });
     }
 
-    getCreditToPay(callback) {
+    async getCreditToPay(callback) {
         let self = this;
+        await this.web3.eth.getAccounts((error, accts) => {
+            self.accounts = accts;
+        });
         self.flightSuretyData.methods.
-        getCreditToPay().call({ from: self.owner}, (error, result) => {
+        getCreditToPay().call({ from: self.accounts[0]}, (error, result) => {
             callback(error, result);
         });
     }
 
-    pay(callback) {
+    async pay(callback) {
         let self = this;
+        await this.web3.eth.getAccounts((error, accts) => {
+            self.accounts = accts;
+        });
         self.flightSuretyData.methods.
-        pay().call({ from: self.owner}, (error, result) => {
+        pay().call({ from: self.accounts[0]}, (error, result) => {
             callback(error, result);
         });
     }

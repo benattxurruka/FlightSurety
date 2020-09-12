@@ -7,8 +7,8 @@
     <title>FlightSurety</title>
     <script src="http://code.jquery.com/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
@@ -29,6 +29,7 @@
               <th scope="col">Flight</th>
               <th scope="col">Destination</th>
               <th scope="col">Departure Time</th>
+              <th scope="col">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -63,11 +64,11 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label>Flight Number</label>
-                <input type="text" class="form-control" id="new-flight-number"> 
+                <input type="text" class="form-control" id="new-flight-number" onkeyup="this.value = this.value.toUpperCase();"> 
               </div>
               <div class="form-group col-md-6">
                 <label>Flight Destination</label>
-                <input type="text" class="form-control" id="new-flight-destination" placeholder="City name">
+                <input type="text" class="form-control" id="new-flight-destination" placeholder="City name" onkeyup="this.value = this.value.toUpperCase();">
               </div>
             </div>  
             <button class="btn btn-primary" id="register-flight">Register Flight</button>
@@ -86,24 +87,27 @@
               </div>
               <div class="form-group col-md-2">
                 <label>Selected Airline</label>
-                <input type="text" class="form-control" id="selected-airline-name" placeholder="Name" disabled>
+                <input type="text" class="form-control" id="selected-airline-name" placeholder="Name">
               </div>
               <div class="form-group col-md-6">
                 <label>Airline address</label>
-                <input type="text" class="form-control" id="selected-airline-address" disabled>
+                <input type="text" class="form-control" id="selected-airline-address">
               </div>
               <div class="form-group col-md-2">
                 <label>Flight Number</label>
-                <input type="text" class="form-control" id="flight-number" placeholder="Flight">
+                <input type="text" class="form-control" id="flight-number" placeholder="Flight" onkeyup="this.value = this.value.toUpperCase();">
               </div>
             </div>
-            <button class="btn btn-primary" id="submit-oracle">Submit to Oracles</button>
+            <button class="btn btn-primary" id="submit-oracle">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="oracles-spinner" hidden></span>
+              Submit to Oracles
+            </button>
 
             <div class="top-20"><h2>Passengers actions</h2></div>
             <div class="form-row top-20">
               <div class="form-group col-md-6">
                 <label>Flight number</label>
-                <input type="text" class="form-control" id="insurance-flight">
+                <input type="text" class="form-control" id="insurance-flight" onkeyup="this.value = this.value.toUpperCase();">
               </div>
               <div class="form-group col-md-6">
                 <label>Insurance payment</label>
@@ -133,6 +137,29 @@
                 <div class="form-group col-md-6">
                   <button class="btn btn-primary" id="claim-credit">Claim credit</button>
                 </div>
+            </div>
+            <div class="top-20"><h2>Flight status controller for Oracles</h2>
+              <h5>Choose the status the oracles will return for the flights</h5>
+            </div>
+            <div class="form-row top-20" id='statusButton'>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="10">On Time</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="20">Late Airline</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="30">Late Weather</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="40">Late Technical</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="50">Late Other</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="60">Unknown</button>
+              </div>
             </div>
         <div id="display-wrapper" class="top-20">
         </div>
