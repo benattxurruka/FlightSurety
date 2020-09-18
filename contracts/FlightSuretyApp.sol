@@ -153,7 +153,7 @@ contract FlightSuretyApp {
         return (success, votes);
     }
 
-    function checkIfContains(address[] memory voters) internal returns(bool alreadyVoted){
+    function checkIfContains(address[] memory voters) internal view returns(bool alreadyVoted){
         alreadyVoted = false;
         for (uint256 c = 0; c < voters.length; c++) {
             if (voters[c] == msg.sender) {

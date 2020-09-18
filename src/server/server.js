@@ -94,6 +94,30 @@ flightSuretyApp.events.OracleRequest({
     });
 });
 
+flightSuretyData.events.allEvents({
+  fromBlock: "latest"
+}, function (error, event) {
+  if (error){
+    console.log("error");
+    console.log(error);
+  }  else {
+    console.log("event:");
+    console.log(event);
+  }
+});
+
+// flightSuretyData.events.Credited({
+//   fromBlock: "latest"
+// }, function (error, event) {
+//   if (error){
+//     console.log("error");
+//     console.log(error);
+//   }  else {
+//     console.log("Credited event:");
+//     console.log(event);
+//   }
+// });
+
 function submitOracleResponse (oracle, index, airline, flight, timestamp) {
   let payload = {
     index: index,
@@ -118,8 +142,8 @@ function submitOracleResponse (oracle, index, airline, flight, timestamp) {
         console.log(error, payload);
       } else {
         console.log("Credit set for insurees");
-        console.log(payload);
-        console.log(result);
+        // console.log(payload);
+        // console.log(result);
       }
     });
   }

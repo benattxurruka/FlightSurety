@@ -21,7 +21,7 @@ $(document).ready(function(){
         // Read transaction
         contract.isOperational((error, result) => {
             console.log(error,result);
-            display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+            display('DAPP logs', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
 
@@ -32,15 +32,16 @@ $(document).ready(function(){
             
             // Write transaction
             contract.fetchFlightStatus(selectedAirlineAddress, flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
-
+                display('', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + getTimeFromTimestamp(result.timestamp)} ]);
+                let newTime = result.timestamp;
                 displaySpinner();
                 setTimeout(() => {
-                    hideSpinner();
                     contract.viewFlightStatus(selectedAirlineAddress, flight, (error, result) => {
-                        display('', '', [ { label: 'Flight Status', error: error, value: result} ]);
-                        changeFlightStatus(flight, result);
+                        if (!error) {
+                            changeFlightStatus(flight, result, newTime);
+                        }
                     });
+                    hideSpinner();
                 }, 2000);
             });
         })
@@ -67,7 +68,8 @@ $(document).ready(function(){
             let funds = DOM.elid('funds').value;
             // Write transaction
             contract.fund(funds, (error, result) => {
-                display('Funds', 'Fund yourself', [ { label: 'Fund added to airline', error: error, value: result.funds+" wei"} ]);
+                display('', `Funds added`, [ { label: 'Funds added to airline: ', error: error, value: result.funds+" wei"} ]);
+                display('', '', [ { label: 'Airline is active: ', value: result.active} ]);
             });
         })
 
@@ -78,7 +80,7 @@ $(document).ready(function(){
             
             // Write transaction
             contract.registerFlight(flight, destination, (error, result) => {
-                display('', 'New flight registered', [ { label: 'Flight info:', error: error, value: 'Code:'+result.flight + ' Destination: ' + result.destination} ]);
+                display('', 'New flight registered', [ { label: 'Flight info:', error: error, value: 'Code: '+result.flight + ' Destination: ' + result.destination} ]);
                 if (!error) {
                     flightDisplay(flight, destination, result.address, result.timestamp);
                 }
@@ -91,7 +93,7 @@ $(document).ready(function(){
             let price = DOM.elid('insurance-price').value;
             // Write transaction
             contract.buy(flight, price, (error, result) => {
-                display('', 'Bought a new flight insurance', [ { label: 'Insurance info', error: error, value: `Flight: ${result.flight}. Paid: ${result.price} wei.`} ]);
+                display('', 'Bought a new flight insurance', [ { label: 'Insurance info', error: error, value: `Flight: ${result.flight}. Paid: ${result.price} wei. Passenger: ${result.passenger}`} ]);
             });
         })
 
@@ -121,7 +123,7 @@ $(document).ready(function(){
                     console.log(result);
                     let creditDisplay = DOM.elid("credit-ammount");
                     creditDisplay.value = "0 ethers";
-                    alert(`Successfully withdrawed ${result} ethers!`);
+                    alert(`Successfully withdrawed ${result[1]} wei!`);
                 }
             });
         })
@@ -140,6 +142,7 @@ $(document).ready(function(){
         const response = await fetch(`http://localhost:3000/api/status/${buttonValue}`);
         const myJson = await response.json();
         console.log(myJson);
+        display('', 'Default flights status change submited to server.', [ { label: 'Server response: ', value: myJson.message} ]);
     })
 
     DOM.elid('flights-display').addEventListener('click', async(e) => {
@@ -223,36 +226,50 @@ function hideSpinner() {
     document.getElementById("submit-oracle").disabled = false;
 }
 
-function changeFlightStatus(flight, status) {
+function changeFlightStatus(flight, status, newTime) {
+    console.log(status);
     var row = DOM.elid(flight);
     row.deleteCell(3);
+    row.deleteCell(2);
+    var cell3 = row.insertCell(2);
     var cell4 = row.insertCell(3);
     let statusText = "";
     switch(status) {
         case '10':
             statusText = "ON TIME";
+            cell3.style="color:white";
             cell4.style="color:green";
             break;
         case '20':
             statusText = "LATE AIRLINE";
+            cell3.style="color:red";
             cell4.style="color:red";
             break;
         case '30':
             statusText = "LATE WEATHER";
+            cell3.style="color:red";
             cell4.style="color:yellow";
             break;
         case '40':
             statusText = "LATE TECHNICAL";
+            cell3.style="color:red";
             cell4.style="color:yellow";
             break;
         case '50':
             statusText = "LATE OTHER";
+            cell3.style="color:red";
             cell4.style="color:yellow";
             break;
         default:
             statusText = "UNKNOWN";
+            cell3.style="color:white";
             cell4.style="color:white";
             break;
       }
+    cell3.innerHTML = getTimeFromTimestamp(newTime);
     cell4.innerHTML = statusText;
+}
+
+function getTimeFromTimestamp(timestamp) {
+    return new Date(timestamp * 1000).toLocaleTimeString("es-ES").slice(0, -3);
 }

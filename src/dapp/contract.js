@@ -114,7 +114,8 @@ export default class Contract {
         let value = this.web3.utils.toWei(funds.toString(), "ether");
         let payload = {
             funds: value,
-            funder: 0x00
+            funder: 0x00,
+            active: "false"
         } 
         await this.web3.eth.getAccounts((error, accts) => {
             payload.funder = accts[0];
@@ -127,11 +128,11 @@ export default class Contract {
                     self.flightSuretyData.methods.
                     isActive(payload.funder).call({ from: payload.funder}, (error, result) => {
                         if(!error){
-                            console.log(`Status: ${result}`);
+                            payload.active = result;
                         }
+                        callback(error, payload);
                     });
                 }
-                callback(error, payload);
             });
     }
 
@@ -193,8 +194,16 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             self.accounts = accts;
         });
+        console.log("From: "+self.accounts[0]);
         self.flightSuretyData.methods.
-        pay().call({ from: self.accounts[0]}, (error, result) => {
+        withdraw().call({ from: self.accounts[0]}, (error, result) => {
+            if(error){
+                console.log("error");
+                console.log(error);
+            } else {
+                console.log("result");
+                console.log(result);
+            }
             callback(error, result);
         });
     }

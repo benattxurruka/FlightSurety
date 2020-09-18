@@ -44,7 +44,6 @@ contract FlightSuretyData {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-    event Bought(uint256, address, uint256);
     /**
     * @dev Constructor
     *      The deploying account becomes contractOwner
@@ -139,6 +138,7 @@ contract FlightSuretyData {
                                 address contractAddress
                             )
                             external
+                            view
                             returns(bool)
     {
         return(authorizedContracts[contractAddress] == 1);
@@ -239,9 +239,6 @@ contract FlightSuretyData {
         if(!checkIfContains(msg.sender)){
             passengerAddresses.push(msg.sender);
         }
-        // uint256 value = uint256(msg.value)*10**18;
-        // uint256 value = uint256(msg.value);
-        uint256 paso = 0;
         if (passengers[msg.sender].passengerWallet != msg.sender) {
             passengers[msg.sender] = Passenger({
                                                 passengerWallet: msg.sender,
@@ -253,13 +250,10 @@ contract FlightSuretyData {
         }
         if (msg.value > INSURANCE_PRICE_LIMIT) {
             msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
-            (bool success, ) = msg.sender.call.value(msg.value.sub(INSURANCE_PRICE_LIMIT))("");
-            require(success, string(abi.encodePacked("Transfer failed for credit")));
         }
-        emit Bought(msg.value, msg.sender, INSURANCE_PRICE_LIMIT);
     }
 
-    function checkIfContains(address passenger) internal returns(bool inList){
+    function checkIfContains(address passenger) internal view returns(bool inList){
         inList = false;
         for (uint256 c = 0; c < passengerAddresses.length; c++) {
             if (passengerAddresses[c] == passenger) {
@@ -279,44 +273,40 @@ contract FlightSuretyData {
                                 )
                                 external
                                 requireIsOperational
-                                returns (uint256, address, uint256)
     {
         for (uint256 c = 0; c < passengerAddresses.length; c++) {
             if(passengers[passengerAddresses[c]].boughtFlight[flightCode] != 0) {
+                uint256 savedCredit = passengers[passengerAddresses[c]].credit;
                 uint256 payedPrice = passengers[passengerAddresses[c]].boughtFlight[flightCode];
-                passengers[passengerAddresses[c]].credit = payedPrice + payedPrice.div(2);
-                emit Bought(payedPrice, passengerAddresses[c], payedPrice + payedPrice.div(2));
-                return(payedPrice, passengerAddresses[c], payedPrice + payedPrice.div(2));
+                passengers[passengerAddresses[c]].boughtFlight[flightCode] = 0;
+                passengers[passengerAddresses[c]].credit = savedCredit + payedPrice + payedPrice.div(2);
             }
         }
     }
 
-    function getCreditToPay() external returns (uint256) {
+    function getCreditToPay() external view returns (uint256) {
         return passengers[msg.sender].credit;
     }
     /**
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay
+    function withdraw
                             (
                             )
                             external
                             requireIsOperational
-                            returns (uint256)
+                            returns (uint256, uint256, uint256, uint256, address, address)
     {
         require(msg.sender == tx.origin, "Contracts not allowed");
-        require(passengers[msg.sender].credit >= 0, "The company didn't put any money to be withdrawed by you");
-        
+        require(passengers[msg.sender].credit > 0, "The company didn't put any money to be withdrawed by you");
+        uint256 initialBalance = address(this).balance;
         uint256 credit = passengers[msg.sender].credit;
-        require(address(this).balance >= credit, "The contract does not have enough funds to pay the credit");
-
+        require(address(this).balance > credit, "The contract does not have enough funds to pay the credit");
         passengers[msg.sender].credit = 0;
-        // msg.sender.transfer(credit);
-        (bool success, ) = msg.sender.call.value(credit)("");
-        require(success, string(abi.encodePacked("Transfer failed for credit")));
-        emit Bought(credit, msg.sender, passengers[msg.sender].credit);
-        return credit;
+        msg.sender.transfer(credit);
+        uint256 finalCredit = passengers[msg.sender].credit;
+        return (initialBalance, credit, address(this).balance, finalCredit, msg.sender, address(this));
     }
 
    /**
