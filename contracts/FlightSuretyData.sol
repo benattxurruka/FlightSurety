@@ -12,7 +12,7 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
     // address payable public dataContractAddress;
-    mapping(address => uint8) private authorizedContracts;
+    mapping(address => uint256) private authorizedContracts;
 
     // airlines info
     struct Airline {
@@ -62,7 +62,7 @@ contract FlightSuretyData {
         airlines[msg.sender] = Airline({
                                             airlineWallet: msg.sender,
                                             isRegistered: true,
-                                            name: "Genesis Airline",
+                                            name: "UdacityAir",
                                             funded: 0,
                                             // votes: new address[](0)
                                             votes: 0
@@ -102,7 +102,7 @@ contract FlightSuretyData {
     */
     modifier requireIsCallerAuthorized()
     {
-        require(authorizedContracts[msg.sender] == 1, "Caller is not contract owner");
+        require(authorizedContracts[msg.sender] == 1, "Caller is not an authorized contract");
         _;
     }
 
@@ -293,20 +293,21 @@ contract FlightSuretyData {
     */
     function withdraw
                             (
+                                address payable insuredPassenger
                             )
-                            external
+                            public
                             requireIsOperational
                             returns (uint256, uint256, uint256, uint256, address, address)
     {
-        require(msg.sender == tx.origin, "Contracts not allowed");
-        require(passengers[msg.sender].credit > 0, "The company didn't put any money to be withdrawed by you");
+        require(insuredPassenger == tx.origin, "Contracts not allowed");
+        require(passengers[insuredPassenger].credit > 0, "The company didn't put any money to be withdrawed by you");
         uint256 initialBalance = address(this).balance;
-        uint256 credit = passengers[msg.sender].credit;
+        uint256 credit = passengers[insuredPassenger].credit;
         require(address(this).balance > credit, "The contract does not have enough funds to pay the credit");
-        passengers[msg.sender].credit = 0;
-        msg.sender.transfer(credit);
-        uint256 finalCredit = passengers[msg.sender].credit;
-        return (initialBalance, credit, address(this).balance, finalCredit, msg.sender, address(this));
+        passengers[insuredPassenger].credit = 0;
+        insuredPassenger.transfer(credit);
+        uint256 finalCredit = passengers[insuredPassenger].credit;
+        return (initialBalance, credit, address(this).balance, finalCredit, insuredPassenger, address(this));
     }
 
    /**

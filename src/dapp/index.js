@@ -20,7 +20,6 @@ $(document).ready(function(){
 
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
             display('DAPP logs', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
@@ -80,7 +79,7 @@ $(document).ready(function(){
             
             // Write transaction
             contract.registerFlight(flight, destination, (error, result) => {
-                display('', 'New flight registered', [ { label: 'Flight info:', error: error, value: 'Code: '+result.flight + ' Destination: ' + result.destination} ]);
+                display('', 'Register new flight', [ { label: 'Info:', error: error, value: 'Flight code: '+result.flight + ' Destination: ' + result.destination} ]);
                 if (!error) {
                     flightDisplay(flight, destination, result.address, result.timestamp);
                 }
@@ -149,7 +148,7 @@ $(document).ready(function(){
         let flightCode = e.srcElement.innerHTML;
         console.log(e);
         console.log(flightCode);
-        flightCode = flightCode.replace("✈ ", "");
+        flightCode = flightCode.replace("✈ ", "").replace("<b>", "").replace("</b>", "");
         navigator.clipboard.writeText(flightCode).then(function() {
             console.log(`Async: Copying to clipboard was successful! Copied: ${flightCode}`);
         }, function(err) {
@@ -215,13 +214,11 @@ function addAirlineOption(airlineName, hash) {
 }
 
 function displaySpinner() {
-    console.log("display spinner");
     document.getElementById("oracles-spinner").hidden = false;
     document.getElementById("submit-oracle").disabled = true;
 }
 
 function hideSpinner() {
-    console.log("hide spinner");
     document.getElementById("oracles-spinner").hidden = true;
     document.getElementById("submit-oracle").disabled = false;
 }

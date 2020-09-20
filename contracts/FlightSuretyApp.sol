@@ -94,7 +94,7 @@ contract FlightSuretyApp {
     */
     modifier requireIsAirlineActive()
     {
-        require(flightSuretyData.isActive(msg.sender), "This airline did not provide funding in order to vote on adding new airlines");
+        require(flightSuretyData.isActive(msg.sender), "This account did not provide enough funding, therefore is not active for airline operational actions.");
         _;
     }
 
@@ -137,9 +137,9 @@ contract FlightSuretyApp {
     function registerAirline
                             (
                                 address airlineAddress,
-                                string calldata name
+                                string memory name
                             )
-                            external
+                            public
                             requireIsOperational
                             requireIsAirlineActive
                             requireAirlineNotVoted(airlineAddress)
@@ -176,6 +176,7 @@ contract FlightSuretyApp {
                                 )
                                 external
                                 requireIsOperational
+                                requireIsAirlineActive
     {
         bytes32 key = keccak256(abi.encodePacked(flight, msg.sender));
         require(!flights[key].isRegistered, "Flight is already registered.");
@@ -251,6 +252,14 @@ contract FlightSuretyApp {
     {
             bytes32 key = keccak256(abi.encodePacked(flight, airline));
             return flights[key].statusCode;
+    }
+
+    function withdrawCredit ()
+                            public
+                            requireIsOperational
+                            returns (uint256, uint256, uint256, uint256, address, address)
+    {
+        return (flightSuretyData.withdraw(msg.sender));
     }
 
 // region ORACLE MANAGEMENT
@@ -432,5 +441,6 @@ contract FlightSuretyData {
     function registerAirline(address airlineAddress, string calldata name) external;
     function getAirlineVotes(address airline) public view returns (uint256 votes);
     function creditInsurees (string calldata flightCode) external;
+    function withdraw (address payable insuredPassenger) public returns (uint256, uint256, uint256, uint256, address, address);
     // function fund() public payable;
 }

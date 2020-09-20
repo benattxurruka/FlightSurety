@@ -6,16 +6,37 @@ import Web3 from 'web3';
 export default class Contract {
     constructor(network, callback) {
 
+        this.owner = null;
         let config = Config[network];
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
+        this.appAddress = config.appAddress;
         this.initialize(callback);
-        this.owner = null;
+        // this.flightSuretyData.methods.authorizeCaller(config.appAddress).send({from: this.owner}, (error, result) => {
+        //     console.log("app address: "+config.appAddress);
+        //     console.log("Owner: "+this.owner);
+        //     if(error) {
+        //         console.log(error);
+        //     } else {
+        //         console.log(result);
+        //     }
+        // });
+
+        // this.flightSuretyData.methods.isAuthorized(config.appAddress).call({from: this.owner}, (error, result) => {
+        //     if(error) {
+        //         console.log(error);
+        //     } else {
+        //         console.log("Authorized: ");
+        //         console.log(result);
+        //     }
+        // });
         this.airlines = [];
         this.passengers = [];
         this.accounts = [];
     }
+
+    
 
     async initialize(callback) {
         if (window.ethereum) {
@@ -39,7 +60,7 @@ export default class Contract {
             this.owner = accts[0];
 
             this.accounts = accts;
-            console.log(this.accounts);
+            // console.log(this.accounts);
 
             let counter = 1;
             
@@ -50,6 +71,13 @@ export default class Contract {
             while(this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
+
+            this.flightSuretyData.methods.authorizeCaller(this.appAddress).send({from: this.owner}, (error, result) => {
+                if(error) {
+                    console.log("Could not authorize the App contract");
+                    console.log(error);
+                }
+            });
 
             callback();
         });
@@ -99,7 +127,7 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             payload.sender = accts[0];
         });
-        self.flightSuretyData.methods
+        self.flightSuretyApp.methods
             .registerAirline(payload.airlineAddress, payload.name)
             .send({ from: payload.sender,
                 gas: 5000000,
@@ -120,7 +148,6 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             payload.funder = accts[0];
         });
-        console.log(payload);
         self.flightSuretyData.methods
             .fund()
             .send({ from: payload.funder, value: value}, (error, result) => {
@@ -146,7 +173,6 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             self.accounts = accts;
         });
-        console.log(payload);
         self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.destination, payload.timestamp)
             .send({ from: self.accounts[0],
@@ -167,7 +193,6 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             payload.passenger = accts[0];
         });
-        console.log(payload);
         self.flightSuretyData.methods
             .buy(flight)
             .send({ from: payload.passenger, value: priceInWei,
@@ -194,16 +219,8 @@ export default class Contract {
         await this.web3.eth.getAccounts((error, accts) => {
             self.accounts = accts;
         });
-        console.log("From: "+self.accounts[0]);
         self.flightSuretyData.methods.
-        withdraw().call({ from: self.accounts[0]}, (error, result) => {
-            if(error){
-                console.log("error");
-                console.log(error);
-            } else {
-                console.log("result");
-                console.log(result);
-            }
+        withdraw(self.accounts[0]).send({ from: self.accounts[0]}, (error, result) => {
             callback(error, result);
         });
     }
