@@ -13,24 +13,6 @@ export default class Contract {
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
         this.appAddress = config.appAddress;
         this.initialize(callback);
-        // this.flightSuretyData.methods.authorizeCaller(config.appAddress).send({from: this.owner}, (error, result) => {
-        //     console.log("app address: "+config.appAddress);
-        //     console.log("Owner: "+this.owner);
-        //     if(error) {
-        //         console.log(error);
-        //     } else {
-        //         console.log(result);
-        //     }
-        // });
-
-        // this.flightSuretyData.methods.isAuthorized(config.appAddress).call({from: this.owner}, (error, result) => {
-        //     if(error) {
-        //         console.log(error);
-        //     } else {
-        //         console.log("Authorized: ");
-        //         console.log(result);
-        //     }
-        // });
         this.airlines = [];
         this.passengers = [];
         this.accounts = [];
@@ -133,7 +115,20 @@ export default class Contract {
                 gas: 5000000,
                 gasPrice: 20000000
             }, (error, result) => {
-                callback(error, payload);
+                if (error) {
+                    console.log(error);
+                } else {
+                    self.flightSuretyData.methods.
+                    isRegistered(payload.airlineAddress).call({ from: payload.sender}, (error, result) => {
+                        if (error || result == false) {
+                            payload.message = 'New airline needs at least 5 votes to get registered.';
+                            callback(error, payload);
+                        } else {
+                            payload.message = payload.airlineAddress + ' ' + payload.name;
+                            callback(error, payload);
+                        }
+                    });
+                }
             });
     }
 

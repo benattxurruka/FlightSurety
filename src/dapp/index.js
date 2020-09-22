@@ -53,7 +53,7 @@ $(document).ready(function(){
 
             // Write transaction
             contract.registerAirline(address, name, sender, (error, result) => {
-                display('Airlines', 'Register a new airline', [ { label: 'Register Airline', error: error, value: result.airlineAddress + ' ' + result.name} ]);
+                display('', 'New airline address and name: ', [ { label: 'Register Airline', error: error, value: result.airlineAddress + ' ' + result.name} ]);
                 if(!error){
                     addAirlineOption(name, address);
                 } else {

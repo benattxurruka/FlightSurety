@@ -143,14 +143,11 @@ contract FlightSuretyApp {
                             requireIsOperational
                             requireIsAirlineActive
                             requireAirlineNotVoted(airlineAddress)
-                            returns(bool success, uint256 votes)
     {
-        flightSuretyData.registerAirline(airlineAddress, name);
-        airlineVoters[airlineAddress].push(msg.sender);
-        success = true;
-        votes = flightSuretyData.getAirlineVotes(airlineAddress);
-
-        return (success, votes);
+        bool success = flightSuretyData.registerAirline(airlineAddress, name);
+        if (success == true) {
+            airlineVoters[airlineAddress].push(msg.sender);
+        }
     }
 
     function checkIfContains(address[] memory voters) internal view returns(bool alreadyVoted){
@@ -438,7 +435,7 @@ contract FlightSuretyApp {
 contract FlightSuretyData {
     function isOperational() public view returns(bool);
     function isActive ( address airline) public view returns(bool);
-    function registerAirline(address airlineAddress, string calldata name) external;
+    function registerAirline(address airlineAddress, string calldata name) external returns(bool);
     function getAirlineVotes(address airline) public view returns (uint256 votes);
     function creditInsurees (string calldata flightCode) external;
     function withdraw (address payable insuredPassenger) public returns (uint256, uint256, uint256, uint256, address, address);

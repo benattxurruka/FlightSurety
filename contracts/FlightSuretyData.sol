@@ -177,6 +177,10 @@ contract FlightSuretyData {
         return(airlines[airline].funded >= MINIMUM_FUNDS);
     }
 
+    function isRegistered ( address airline) public view returns(bool) {
+        return(airlines[airline].isRegistered);
+    }
+
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
@@ -190,11 +194,12 @@ contract FlightSuretyData {
                             external
                             requireIsOperational
                             requireIsCallerAuthorized
+                            returns (bool)
     {
         require(airlineAddress != address(0), "'airlineAddress' must be a valid address.");
         require(!airlines[airlineAddress].isRegistered, "Airline is already registered.");
 
-        if(airlinesCount < MULTIPARTY_MIN_AIRLINES){
+        if(airlinesCount <= MULTIPARTY_MIN_AIRLINES){
             airlines[airlineAddress] = Airline({
                                                 airlineWallet: airlineAddress,
                                                 isRegistered: true,
@@ -204,16 +209,20 @@ contract FlightSuretyData {
                                         });
             airlinesCount++;
         } else {
-            vote(airlineAddress);
+            require(vote(airlineAddress), "An error happened while voting");
         }
+        return (true);
     }
 
-    function vote (address voted) internal requireIsOperational {
+    function vote (address voted) internal requireIsOperational returns(bool) {
+        bool votingOK = false;
         airlines[voted].votes++;
         if (airlines[voted].votes >= airlinesCount.div(2)) {
             airlines[voted].isRegistered = true;
             airlinesCount++;
         }
+        votingOK = true;
+        return votingOK;
     }
 
     function getAirlineVotes(address airline) public view returns (uint256 votes) {

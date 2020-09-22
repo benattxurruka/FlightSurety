@@ -36,19 +36,7 @@
         </tbody>
       </table>
 
-      <h2>Operator</h2>
             <h2>Airline actions</h2>
-            <div class="form-row">
-              <div class="form-group col-md-6">
-                <label>Airline address</label>
-                <input type="text" class="form-control" id="airline-address" placeholder="Address">
-              </div>
-              <div class="form-group col-md-6">
-                <label>Airline name</label>
-                <input type="text" class="form-control" id="airline-name" placeholder="Name">
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary" id="register-airline">Register Airline</button>
             <div class="form-group top-20">
               <label>Fund</label>
               <div class="input-group mb-2">
@@ -59,6 +47,18 @@
               </div>
             </div>
             <button type="submit" class="btn btn-primary" id="fund">Fund</button>
+
+            <div class="form-row top-20">
+              <div class="form-group col-md-6">
+                <label>Airline address</label>
+                <input type="text" class="form-control" id="airline-address" placeholder="Address">
+              </div>
+              <div class="form-group col-md-6">
+                <label>Airline name</label>
+                <input type="text" class="form-control" id="airline-name" placeholder="Name">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="register-airline">Register Airline</button>
 
             <div class="top-20"><h2>Flights actions</h2></div>
             <div class="form-row">
@@ -72,6 +72,66 @@
               </div>
             </div>  
             <button class="btn btn-primary" id="register-flight">Register Flight</button>
+
+            <div class="top-20"><h2>Passengers actions</h2></div>
+            <div class="form-row top-20">
+              <div class="form-group col-md-6">
+                <label>Flight number</label>
+                <input type="text" class="form-control" id="insurance-flight" onkeyup="this.value = this.value.toUpperCase();">
+              </div>
+              <div class="form-group col-md-6">
+                <label>Insurance payment</label>
+                <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                      <div class="input-group-text">ETH</div>
+                  </div>
+                  <input type="text" class="form-control" id="insurance-price">
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="buy-insurance">Buy insurance</button>
+            
+            <div class="form-row top-20">
+              <label>Get paid</label>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                  <div class="form-row">
+                    <div class="form-group col-md-1.5">
+                      <button class="btn btn-primary" id="check-credit">Check credit</button>
+                    </div>
+                    <div class="form-group col-md">
+                        <input type="text" class="form-control" id="credit-ammount" placeholder="Here will be displayed your credit" disabled>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group col-md-6">
+                  <button class="btn btn-primary" id="claim-credit">Claim credit</button>
+                </div>
+            </div>
+            <div class="top-20"><h2>Oracle Actions</h2>
+              <h5>Choose the status the oracles will return for the flights</h5>
+            </div>
+            <div class="form-row top-20" id='statusButton'>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="10">On Time</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="20">Late Airline</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="30">Late Weather</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="40">Late Technical</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="50">Late Other</button>
+              </div>
+              <div class="form-group col-md-1.1">
+                <button class="btn btn-primary" value="60">Unknown</button>
+              </div>
+            </div>
 
             <div class="form-row top-20">
               <div class="form-group col-md-2">
@@ -102,65 +162,6 @@
               <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="oracles-spinner" hidden></span>
               Submit to Oracles
             </button>
-
-            <div class="top-20"><h2>Passengers actions</h2></div>
-            <div class="form-row top-20">
-              <div class="form-group col-md-6">
-                <label>Flight number</label>
-                <input type="text" class="form-control" id="insurance-flight" onkeyup="this.value = this.value.toUpperCase();">
-              </div>
-              <div class="form-group col-md-6">
-                <label>Insurance payment</label>
-                <div class="input-group mb-2">
-                  <div class="input-group-prepend">
-                      <div class="input-group-text">ETH</div>
-                  </div>
-                  <input type="text" class="form-control" id="insurance-price">
-                </div>
-              </div>
-            </div>
-            <button class="btn btn-primary" id="buy-insurance">Buy insurance</button>
-            <div class="form-row top-20">
-              <label>Get paid</label>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                  <div class="form-row">
-                    <div class="form-group col-md-1.5">
-                      <button class="btn btn-primary" id="check-credit">Check credit</button>
-                    </div>
-                    <div class="form-group col-md">
-                        <input type="text" class="form-control" id="credit-ammount" placeholder="Here will be displayed your credit" disabled>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group col-md-6">
-                  <button class="btn btn-primary" id="claim-credit">Claim credit</button>
-                </div>
-            </div>
-            <div class="top-20"><h2>Flight status controller for Oracles</h2>
-              <h5>Choose the status the oracles will return for the flights</h5>
-            </div>
-            <div class="form-row top-20" id='statusButton'>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="10">On Time</button>
-              </div>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="20">Late Airline</button>
-              </div>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="30">Late Weather</button>
-              </div>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="40">Late Technical</button>
-              </div>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="50">Late Other</button>
-              </div>
-              <div class="form-group col-md-1.1">
-                <button class="btn btn-primary" value="60">Unknown</button>
-              </div>
-            </div>
         <div id="display-wrapper" class="top-20">
         </div>
     </main>
