@@ -53,11 +53,11 @@ $(document).ready(function(){
 
             // Write transaction
             contract.registerAirline(address, name, sender, (error, result) => {
-                display('', 'New airline address and name: ', [ { label: 'Register Airline', error: error, value: result.airlineAddress + ' ' + result.name} ]);
-                if(!error){
-                    addAirlineOption(name, address);
-                } else {
+                display('', 'New airline address and name: ', [ { label: 'Register Airline', error: error, value: result.message} ]);
+                if(error){
                     console.log(error);
+                } else if (result.registered == true) {
+                    addAirlineOption(name, address);
                 }
             });
         })
@@ -119,10 +119,9 @@ $(document).ready(function(){
                     console.log(error);
                     alert("Error! Could not withdraw the credit.");
                 } else {
-                    console.log(result);
                     let creditDisplay = DOM.elid("credit-ammount");
+                    alert(`Successfully withdrawed ${creditDisplay.value} wei!`);
                     creditDisplay.value = "0 ethers";
-                    alert(`Successfully withdrawed ${result[1]} wei!`);
                 }
             });
         })
