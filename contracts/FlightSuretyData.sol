@@ -199,7 +199,7 @@ contract FlightSuretyData {
         require(airlineAddress != address(0), "'airlineAddress' must be a valid address.");
         require(!airlines[airlineAddress].isRegistered, "Airline is already registered.");
 
-        if(airlinesCount <= MULTIPARTY_MIN_AIRLINES){
+        if(airlinesCount < MULTIPARTY_MIN_AIRLINES){
             airlines[airlineAddress] = Airline({
                                                 airlineWallet: airlineAddress,
                                                 isRegistered: true,

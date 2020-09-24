@@ -15,7 +15,7 @@ let flightSuretyData = new web3.eth.Contract(FlightSuretyData.abi, config.dataAd
 let oracleAccounts = [];
 let oraclesIndexList = [];
 
-const TEST_ORACLES_COUNT = 20;
+const TEST_ORACLES_COUNT = 25;
 
 let STATUS_CODE_UNKNOWN = 0;
 let STATUS_CODE_ON_TIME = 10;
