@@ -109,3 +109,12 @@ When registering the fifth airline, voting system starts and a log wil warn abou
 * [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
 * [Ethereum Blockchain Explorer](https://etherscan.io/)
 * [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+
+# Program version numbers
+
+* Node.js v6.14.4
+* Solidity v0.4.25
+* Truffle v5.1.27
+* Ganache v6.10.0-beta.2
+* truffle-hdwallet-provider v1.0.2
+* Web3 v1.2.6
