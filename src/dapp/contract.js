@@ -117,15 +117,16 @@ export default class Contract {
             }, (error, result) => {
                 if (error) {
                     console.log(error);
+                    callback(error, payload);
                 } else {
                     self.flightSuretyData.methods.
                     isRegistered(payload.airlineAddress).call({ from: payload.sender}, (error, result) => {
                         if (error || result.toString() === 'false') {
-                            payload.message = 'New airline needs at least 5 votes to get registered.';
+                            payload.message = 'New airline needs at least 4 votes to get registered.';
                             payload.registered = false;
                             callback(error, payload);
                         } else {
-                            payload.message = payload.airlineAddress + ' ' + payload.name;
+                            payload.message = 'Registered ' + payload.airlineAddress + ' as ' + payload.name;
                             payload.registered = true;
                             callback(error, payload);
                         }
