@@ -63,13 +63,11 @@ Every time an action is performed, a log will be displayed at the bottom "Logs" 
 ![truffle test](images/Fund_logs.png)
 
 3) Register an airline introducing account address and name.
-
-    ![truffle test](images/Register_airline.png)
-Then, an OK message will be logged and it will be added to airlines combobox
+![truffle test](images/Register_airline.png)
+   Then, an OK message will be logged and it will be added to airlines combobox
 ![truffle test](images/Airline_registered.png)
 ![truffle test](images/Airline_list.png)
-
-    When registering the fifth airline, voting system starts and a log wil warn about it. Once the airline has 4 votes, it will be added as previous ones.
+When registering the fifth airline, voting system starts and a log wil warn about it. Once the airline has 4 votes, it will be added as previous ones.
 ![truffle test](images/Fifth_airline.png)
 
 4) Select in Metamask the new airline account.
