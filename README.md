@@ -64,8 +64,9 @@ Every time an action is performed, a log will be displayed at the bottom "Logs" 
 
 3) Register an airline introducing account address and name.
 
-    ![truffle test](images/Register_airline.png)
-Then, an OK message will be logged and it will be added to airlines combobox
+![truffle test](images/Register_airline.png)
+    
+    Then, an OK message will be logged and it will be added to airlines combobox
 ![truffle test](images/Airline_registered.png)
 ![truffle test](images/Airline_list.png)
 
