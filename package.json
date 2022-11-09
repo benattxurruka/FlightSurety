@@ -43,6 +43,6 @@
     "webpack-node-externals": "1.7.2"
   },
   "dependencies": {
-    "truffle": "^5.1.27"
+    "truffle": "^5.6.5"
   }
 }
